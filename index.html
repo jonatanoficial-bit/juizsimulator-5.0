@@ -1,19 +1,10 @@
 <!doctype html>
+
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jogo do Juiz — Vale Produção</title>
-
-  <!-- React 18 + ReactDOM -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <!-- Babel para JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
+  <title>Jogo do Juiz — Vale Produção</title>  <!-- React 18 + ReactDOM -->  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>  <!-- Babel para JSX -->  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>  <!-- Tailwind CDN -->  <script src="https://cdn.tailwindcss.com"></script>  <style>
     html, body, #root { height: 100%; }
     body {
       margin: 0;
@@ -21,7 +12,6 @@
       color: #fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    /* Scroll suave */
     * {
       scrollbar-width: thin;
       scrollbar-color: rgba(148,163,184,0.6) transparent;
@@ -34,12 +24,9 @@
       background: rgba(148,163,184,0.6);
       border-radius: 999px;
     }
-  </style>
-</head>
+  </style></head>
 <body>
-  <div id="root"></div>
-
-  <script type="text/babel">
+  <div id="root"></div>  <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
     // -------------------- DADOS FIXOS --------------------
@@ -141,7 +128,7 @@
         }
       }
 
-      // Criminal - diferentes tipos e dificuldades
+      // Criminal
       addLote("criminal",
         "Homicídio simples em briga de bar",
         "Discussão em estabelecimento que evolui para agressões sucessivas, culminando em morte de uma das partes.",
@@ -246,14 +233,14 @@
       return texto;
     }
 
-    // -------------------- COMPONENTES DE INTERFACE --------------------
+    // -------------------- COMPONENTES UI --------------------
     function SplashScreen({ onStart }) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-black">
           <div className="relative w-full max-w-md h-[520px] rounded-3xl overflow-hidden shadow-2xl">
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('img/capa.png')" }}
+              style={{ backgroundImage: "url('./img/capa.png')" }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
             <div className="relative z-10 h-full flex flex-col items-center justify-end pb-10 px-6">
@@ -354,7 +341,7 @@
       return (
         <div
           className="min-h-screen bg-cover bg-center flex items-center justify-center"
-          style={{ backgroundImage: "url('img/capa.png')" }}
+          style={{ backgroundImage: "url('./img/capa.png')" }}
         >
           <div className="bg-black/80 text-white max-w-lg w-full mx-4 p-6 rounded-3xl border border-white/10 backdrop-blur">
             <h1 className="text-xl font-semibold mb-1 text-center">Vale Produção apresenta</h1>
@@ -535,10 +522,12 @@
 
       const stjElegivel = prestigio >= 60 && julgados >= 30 && !profile.stj?.ativo;
 
+      const bgImage = profile.stj?.ativo ? "./img/stj.png" : "./img/escritorio.png";
+
       return (
         <div
           className="min-h-screen relative bg-cover bg-center text-white"
-          style={{ backgroundImage: "url('img/escritorio.png')" }}
+          style={{ backgroundImage: `url('${bgImage}')` }}
         >
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
           <div className="relative z-10 max-w-6xl mx-auto p-6">
@@ -656,7 +645,7 @@
       function deliberarJuri() {
         const novo = jurados.map(j => {
           const certeza = 50 + Math.round(Math.random() * 50);
-          const votoCulpa = Math.random() < 0.55; // leve viés condenatório
+          const votoCulpa = Math.random() < 0.55;
           return { ...j, voto: votoCulpa, certeza };
         });
         setJurados(novo);
@@ -671,7 +660,7 @@
       return (
         <div
           className="min-h-screen relative bg-cover bg-center text-white"
-          style={{ backgroundImage: "url('img/tribunal.png')" }}
+          style={{ backgroundImage: "url('./img/tribunal.png')" }}
         >
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
           <ProvaViewer prova={provaSel} onClose={() => setProvaSel(null)} />
@@ -840,7 +829,7 @@
 
     // -------------------- APP PRINCIPAL --------------------
     function App() {
-      const [screen, setScreen] = useState("splash"); // splash, tutorial, login, court, location, office, trial
+      const [screen, setScreen] = useState("splash");
       const [profiles, setProfiles] = useState({});
       const [currentName, setCurrentName] = useState(null);
       const [cases, setCases] = useState(() => seedCases());
@@ -888,7 +877,6 @@
       }
 
       function handleDecidir(veredito) {
-        // Atualiza caso
         setCases(prev =>
           prev.map(c =>
             c.id === currentCaseId
@@ -896,7 +884,6 @@
               : c
           )
         );
-        // Atualiza perfil
         const caso = cases.find(c => c.id === currentCaseId);
         if (caso && currentProfile) {
           const julgados = (currentProfile.stats?.julgados || 0) + 1;
@@ -917,7 +904,7 @@
 
       function handleSTJ() {
         updateProfile({ stj: { ativo: true } });
-        alert("Parabéns! Você foi promovido(a) ao STJ nesta simulação. Novos casos podem ser preparados futuramente.");
+        alert("Parabéns! Você foi promovido(a) ao STJ nesta simulação. Os fundos e textos foram ajustados para refletir a nova função.");
       }
 
       function handleRelatorio() {
@@ -937,7 +924,6 @@
         );
       }
 
-      // Renderização condicional
       if (screen === "splash") {
         return <SplashScreen onStart={() => setScreen("tutorial")} />;
       }
@@ -1003,6 +989,5 @@
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
-  </script>
-</body>
+  </script></body>
 </html>
