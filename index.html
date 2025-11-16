@@ -1,1369 +1,491 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<title>Tribunal – Simulador de Juiz 4.2</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<style>
-  :root{
-    --bg-dark:#020617;
-    --glass:#020617dd;
-    --accent:#22c55e;
-    --accent-soft:#4ade80;
-    --danger:#f97373;
-    --muted:#94a3b8;
-    --text:#e5e7eb;
-    --card:#020617ee;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    background:var(--bg-dark);
-    color:var(--text);
-    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    min-height:100vh;
-  }
-  button,input,select,textarea{font-family:inherit;}
-  .screen{min-height:100vh;display:none;}
-  .screen.active{display:block;}
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Jogo do Juiz — Vale Produção</title>
 
-  .bg-splash{
-    background-image:url("https://jonatanoficial-bit.github.io/juizsimulator-4.0/img/capa.png");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-  }
-  .bg-office{
-    background-image:url("https://jonatanoficial-bit.github.io/juizsimulator-4.0/img/escritorio.png");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-  }
-  .bg-court{
-    background-image:url("https://jonatanoficial-bit.github.io/juizsimulator-4.0/img/tribunal.png");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-  }
-  .bg-stj{
-    background-image:url("https://jonatanoficial-bit.github.io/juizsimulator-4.0/img/stj.png");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-  }
-  .overlay{
-    background:radial-gradient(circle at 10% 0%,rgba(15,23,42,.9) 0,rgba(15,23,42,.8) 35%,rgba(15,23,42,.95) 100%);
-    min-height:100vh;
-    padding:1.5rem;
-  }
-  .container{max-width:1100px;margin:0 auto;}
-  .glass{
-    background:var(--glass);
-    border-radius:1.25rem;
-    padding:1.5rem;
-    box-shadow:0 25px 40px rgba(0,0,0,.65);
-    border:1px solid rgba(148,163,184,.25);
-  }
-  h1,h2,h3{font-weight:700;}
+  <!-- React + ReactDOM + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  .btn{
-    border:none;
-    padding:.6rem 1.2rem;
-    border-radius:.75rem;
-    cursor:pointer;
-    font-size:.9rem;
-    font-weight:600;
-    transition:.15s;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.4rem;
-  }
-  .btn-main{
-    background:linear-gradient(135deg,var(--accent),var(--accent-soft));
-    color:#022c22;
-  }
-  .btn-main:hover{filter:brightness(1.1);}
-  .btn-soft{
-    background:rgba(15,23,42,.9);
-    color:var(--text);
-    border:1px solid rgba(148,163,184,.5);
-  }
-  .btn-soft:hover{background:rgba(15,23,42,1);}
-  .btn-danger{
-    background:var(--danger);
-    color:#111827;
-  }
-  .badge{
-    display:inline-flex;
-    align-items:center;
-    gap:.3rem;
-    padding:.2rem .6rem;
-    border-radius:999px;
-    font-size:.7rem;
-    background:rgba(15,23,42,.9);
-    border:1px solid rgba(148,163,184,.6);
-    color:var(--muted);
-  }
-  input,select,textarea{
-    width:100%;
-    padding:.5rem .7rem;
-    border-radius:.5rem;
-    background:rgba(15,23,42,.9);
-    border:1px solid rgba(148,163,184,.5);
-    color:var(--text);
-    font-size:.9rem;
-  }
-  input:focus,select:focus,textarea:focus{
-    outline:none;
-    border-color:var(--accent);
-  }
-  .grid{display:grid;gap:1rem;}
-  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));}
-  @media(max-width:768px){
-    .grid-2{grid-template-columns:1fr;}
-    .overlay{padding:.75rem;}
-    .glass{padding:1rem;}
-  }
-  .card{
-    background:var(--card);
-    border-radius:1rem;
-    padding:1rem;
-    border:1px solid rgba(148,163,184,.25);
-  }
-  .scroll-y{
-    max-height:380px;
-    overflow-y:auto;
-    padding-right:.4rem;
-  }
-  .scroll-y::-webkit-scrollbar{width:.35rem;}
-  .scroll-y::-webkit-scrollbar-thumb{
-    background:rgba(148,163,184,.7);
-    border-radius:999px;
-  }
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  .jury-grid{
-    display:grid;
-    grid-template-columns:repeat(6,minmax(0,1fr));
-    gap:.3rem;
-  }
-  @media(max-width:768px){
-    .jury-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
-  }
-  .jury-cell{
-    background:rgba(15,23,42,.95);
-    border-radius:.6rem;
-    padding:.3rem .4rem;
-    text-align:center;
-    font-size:.7rem;
-    border:1px solid rgba(148,163,184,.4);
-    color:var(--muted);
-  }
-  .jury-cell span{display:block;font-size:.68rem;}
-  .jury-guilty{background:rgba(248,113,113,.17);border-color:rgba(248,113,113,.7);color:#fecaca;}
-  .jury-not{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.8);color:#bbf7d0;}
-
-  .speech-bubble{
-    position:relative;
-    padding:1rem 1rem .9rem 1rem;
-    border-radius:1rem;
-    background:rgba(15,23,42,.97);
-    border:1px solid rgba(148,163,184,.5);
-    font-size:.9rem;
-    line-height:1.5;
-  }
-  .speech-header{
-    display:flex;
-    align-items:center;
-    gap:.6rem;
-    margin-bottom:.35rem;
-  }
-  .avatar{
-    width:2.4rem;
-    height:2.4rem;
-    border-radius:999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.2rem;
-    font-weight:700;
-    color:#f9fafb;
-  }
-  .avatar-acc{background:linear-gradient(135deg,#fecaca,#b91c1c);}
-  .avatar-def{background:linear-gradient(135deg,#bbf7d0,#15803d);}
-  .fade{animation:fadeIn .35s ease-out;}
-  @keyframes fadeIn{
-    from{opacity:0;transform:translateY(4px);}
-    to{opacity:1;transform:translateY(0);}
-  }
-
-  .topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:1rem;
-    gap:.75rem;
-  }
-  .topbar span{font-size:.85rem;color:var(--muted);}
-
-  .mode-pill{
-    padding:.25rem .65rem;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.5);
-    font-size:.7rem;
-    color:var(--muted);
-  }
-
-  /* menu inicial estilo B */
-  .menu-stack{
-    display:flex;
-    flex-direction:column;
-    gap:.6rem;
-    margin-top:1.1rem;
-  }
-  .menu-btn{
-    width:100%;
-    justify-content:flex-start;
-    font-size:.95rem;
-    padding:.7rem 1rem;
-  }
-  .menu-btn span.icon{font-size:1.1rem;}
-
-  .bar-wrap{
-    width:100%;
-    height:.35rem;
-    border-radius:999px;
-    background:rgba(148,163,184,.3);
-    overflow:hidden;
-  }
-  .bar-fill{
-    height:100%;
-    border-radius:999px;
-  }
-</style>
+  <style>
+    html, body, #root {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+  </style>
 </head>
 <body>
+  <div id="root"></div>
 
-<!-- ========== TELA 1 – CAPA / MENU INICIAL (ESTILO B) ========== -->
-<section id="screen-splash" class="screen bg-splash active">
-  <div class="overlay">
-    <div class="container" style="display:flex;align-items:flex-end;min-height:100vh;">
-      <div class="glass" style="max-width:420px;margin-bottom:1.5rem;">
-        <div class="badge">Vale Produção apresenta</div>
-        <h1 style="font-size:1.9rem;margin-top:.6rem;margin-bottom:.15rem;">
-          Tribunal – Simulador de Juiz
-        </h1>
-        <p style="font-size:.9rem;color:var(--muted);">
-          Viva a experiência de julgar casos, construir uma carreira jurídica
-          e treinar decisões com base em provas, como em um tribunal real.
-        </p>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-        <div class="menu-stack">
-          <button class="btn btn-main menu-btn" onclick="startFromMenu('new')">
-            <span class="icon">▶</span>
-            <span>Jogar</span>
-          </button>
-          <button class="btn btn-soft menu-btn" onclick="startFromMenu('study')">
-            <span class="icon">🎓</span>
-            <span>Modo Estudo</span>
-          </button>
-          <button class="btn btn-soft menu-btn" onclick="startFromMenu('career')">
-            <span class="icon">⚖</span>
-            <span>Carreira Jurídica</span>
-          </button>
-          <button class="btn btn-soft menu-btn" onclick="startFromMenu('continue')">
-            <span class="icon">📁</span>
-            <span>Continuar Jogo</span>
-          </button>
-        </div>
+    // ------------ HOOK: MÁQUINA DE ESCREVER ------------
+    function useTypewriter(fullText, speed = 18) {
+      const [text, setText] = useState("");
+      useEffect(() => {
+        if (!fullText) {
+          setText("");
+          return;
+        }
+        setText("");
+        let i = 0;
+        const id = setInterval(() => {
+          i++;
+          setText(fullText.slice(0, i));
+          if (i >= fullText.length) clearInterval(id);
+        }, speed);
+        return () => clearInterval(id);
+      }, [fullText, speed]);
+      return text;
+    }
 
-        <p style="margin-top:.7rem;font-size:.75rem;color:var(--muted);">
-          Quando seu desempenho for alto em Modo Carreira, você poderá se candidatar ao
-          <strong>STJ</strong> pelo botão que aparece no Escritório.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+    // ------------ DADOS FIXOS ------------
+    const ESTADOS = {
+      "AC":["Rio Branco"],"AL":["Maceió"],"AP":["Macapá"],"AM":["Manaus"],
+      "BA":["Salvador","Feira de Santana","Vitória da Conquista"],
+      "CE":["Fortaleza"],"DF":["Brasília"],"ES":["Vitória"],"GO":["Goiânia"],
+      "MA":["São Luís"],"MT":["Cuiabá"],"MS":["Campo Grande"],
+      "MG":["Belo Horizonte","Uberlândia","Juiz de Fora"],
+      "PA":["Belém"],"PB":["João Pessoa"],"PR":["Curitiba","Londrina"],
+      "PE":["Recife"],"PI":["Teresina"],"RJ":["Rio de Janeiro","Niterói"],
+      "RN":["Natal"],"RS":["Porto Alegre","Caxias do Sul"],
+      "RO":["Porto Velho"],"RR":["Boa Vista"],
+      "SC":["Florianópolis","Joinville"],
+      "SP":["São Paulo","Campinas","Santos","Sorocaba"],
+      "SE":["Aracaju"],"TO":["Palmas"]
+    };
 
-<!-- ========== TELA 2 – TUTORIAL SALVAMENTO ========== -->
-<section id="screen-tutorial" class="screen">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <h2>Tutorial rápido de salvamento</h2>
-        <p style="margin-top:.5rem;font-size:.9rem;color:var(--muted);">
-          Este simulador salva seus dados <strong>no próprio navegador (localStorage)</strong> e também
-          permite exportar um arquivo <strong>.juizsave</strong> para backup ou para jogar em outro computador.
-        </p>
-        <div class="grid grid-2" style="margin-top:1rem;">
-          <div class="card">
-            <h3 style="font-size:1rem;margin-bottom:.4rem;">Salvamento automático</h3>
-            <ul style="font-size:.85rem;color:var(--muted);line-height:1.5;margin-left:1rem;">
-              <li>Ao terminar um julgamento.</li>
-              <li>Ao voltar para o Escritório.</li>
-              <li>Ao concluir o exame do STJ.</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3 style="font-size:1rem;margin-bottom:.4rem;">Salvar / Exportar manualmente</h3>
-            <ul style="font-size:.85rem;color:var(--muted);line-height:1.5;margin-left:1rem;">
-              <li>No Escritório, use <strong>“Salvar agora”</strong> para forçar o salvamento.</li>
-              <li>Use <strong>“Exportar Save”</strong> para baixar um arquivo com o progresso.</li>
-              <li>Use <strong>“Importar Save”</strong> para carregar um arquivo salvo anteriormente.</li>
-            </ul>
-          </div>
-        </div>
-        <p style="margin-top:1rem;font-size:.8rem;color:var(--muted);">
-          Dica: em turmas, peça para os alunos exportarem o save ao final de cada aula, como se fosse “entregar a atividade”.
-        </p>
-        <div style="margin-top:1.2rem;display:flex;justify-content:space-between;gap:.6rem;">
-          <button class="btn btn-soft" onclick="goTo('splash')">Voltar</button>
-          <button class="btn btn-main" onclick="goTo('login')">Entendi, continuar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    const SOUND_URLS = {
+      gavel:"https://cdn.pixabay.com/download/audio/2022/03/15/audio_b8e7f6b3a0.mp3?filename=judge-gavel-182004.mp3",
+      murmur:"https://cdn.pixabay.com/download/audio/2021/09/16/audio_7b4b2d7f6c.mp3?filename=crowd-murmur-ambient-75537.mp3"
+    };
 
-<!-- ========== TELA 3 – LOGIN / PERFIS ========== -->
-<section id="screen-login" class="screen">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <div class="badge">Tribunal – Simulador de Juiz 4.2</div>
-            <h2 style="margin-top:.3rem;">Perfis de juiz</h2>
-          </div>
-          <span>Os perfis ficam salvos neste navegador.</span>
-        </div>
-        <div class="grid grid-2">
-          <div class="card">
-            <h3 style="font-size:1rem;margin-bottom:.5rem;">Entrar ou criar perfil</h3>
-            <label style="font-size:.8rem;color:var(--muted);">Usuário</label>
-            <input id="login-name" placeholder="ex.: Dra. Maria, Prof. João..." />
-            <label style="font-size:.8rem;color:var(--muted);margin-top:.6rem;">Senha (opcional)</label>
-            <input id="login-pass" type="password" />
-            <div style="display:flex;gap:.5rem;margin-top:.9rem;">
-              <button class="btn btn-main" onclick="enterProfile()">Entrar / Criar perfil</button>
-              <button class="btn btn-danger" onclick="removeProfile()">Remover perfil</button>
-            </div>
+    function useSound(url, enabled=true, volume=0.7){
+      const ref = useRef(null);
+      useEffect(()=>{
+        const a = new Audio(url);
+        a.volume = volume;
+        ref.current = a;
+        return ()=>{ a.pause(); ref.current = null; };
+      },[url]);
+      const play = ()=>{ if(enabled && ref.current){ ref.current.currentTime = 0; ref.current.play(); } };
+      return { play };
+    }
 
-            <div style="margin-top:1.1rem;">
-              <div style="font-size:.8rem;color:var(--muted);margin-bottom:.25rem;">Perfis encontrados:</div>
-              <div id="profile-list" style="display:flex;flex-wrap:wrap;gap:.4rem;font-size:.8rem;"></div>
-            </div>
-          </div>
-          <div class="card">
-            <h3 style="font-size:1rem;margin-bottom:.5rem;">Backup de save</h3>
-            <button class="btn btn-soft" onclick="exportAllSaves()">Exportar todos os saves</button>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:.4rem;">
-              Gera um arquivo com todos os perfis salvos neste navegador.
-            </p>
-            <hr style="border:none;border-top:1px solid rgba(148,163,184,.4);margin:.9rem 0;" />
-            <label class="btn btn-soft" style="display:inline-block;cursor:pointer;">
-              Importar arquivo de save
-              <input id="import-file" type="file" accept=".juizsave" style="display:none;" />
-            </label>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:.4rem;">
-              Use este recurso para restaurar uma turma ou migrar entre computadores.
-            </p>
-          </div>
-        </div>
-        <div style="margin-top:1rem;text-align:right;">
-          <button class="btn btn-soft" onclick="goTo('splash')">Voltar ao menu inicial</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    // ------------ CASOS (variados) ------------
+    function seedCases(){
+      const casos = [];
+      let id = 1;
 
-<!-- ========== TELA 4 – MODO (CARREIRA / ESTUDO) ========== -->
-<section id="screen-mode" class="screen">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <h2>Escolha o modo de jogo</h2>
-            <span id="mode-user-label" style="display:block;margin-top:.2rem;"></span>
-          </div>
-          <span>Você pode alternar de modo a qualquer momento.</span>
-        </div>
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="badge">Modo carreira</div>
-            <h3 style="margin-top:.4rem;margin-bottom:.3rem;">Evolução como juiz</h3>
-            <p style="font-size:.9rem;color:var(--muted);">
-              Você começa na primeira instância, julga casos simulados, acumula prestígio,
-              pode ser convidado ao STJ e gerar relatórios semestrais de desempenho.
-            </p>
-            <button class="btn btn-main" style="margin-top:.7rem;" onclick="setMode('carreira')">
-              Jogar em modo carreira
-            </button>
-          </div>
-          <div class="card">
-            <div class="badge">Modo estudo</div>
-            <h3 style="margin-top:.4rem;margin-bottom:.3rem;">Treino de casos específicos</h3>
-            <p style="font-size:.9rem;color:var(--muted);">
-              Escolha livremente tipos de casos, repita julgamentos, faça pausas e use o simulador
-              como ferramenta didática em sala de aula ou estudo individual.
-            </p>
-            <button class="btn btn-soft" style="margin-top:.7rem;" onclick="setMode('estudo')">
-              Jogar em modo estudo
-            </button>
-          </div>
-        </div>
-        <div style="margin-top:1.1rem;text-align:right;">
-          <button class="btn btn-soft" onclick="goTo('login')">Voltar ao login</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      function addLote(tipo, titulo, resumo, gabarito, dificuldade){
+        for(let i=0;i<8;i++){
+          casos.push({
+            id: tipo+"-"+id++,
+            tipo,
+            titulo: titulo+" ("+dificuldade+") #"+(i+1),
+            resumo,
+            gabarito,
+            dificuldade,
+            provas: [
+              {id:"E1",tipo:"boletim",conteudo:"Registro oficial do fato com horário, local e partes envolvidas, lavrado pela autoridade competente."},
+              {id:"E2",tipo:"laudo",conteudo:"Laudo técnico descrevendo danos, lesões ou situação periciada, com metodologia e conclusão."},
+              {id:"E3",tipo:"testemunha",conteudo:"Depoimento com pontos de concordância e divergência entre a versão da vítima e do acusado."}
+            ],
+            status:"na_fila"
+          });
+        }
+      }
 
-<!-- ========== TELA 5 – ESCOLHA DO TRIBUNAL ========== -->
-<section id="screen-court" class="screen">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <h2>Escolha o tribunal em que atuará</h2>
-            <span id="court-user-label" style="display:block;margin-top:.2rem;font-size:.85rem;color:var(--muted);"></span>
-          </div>
-          <span id="mode-pill" class="mode-pill"></span>
-        </div>
-        <div class="grid grid-2">
-          <div class="card">
-            <h3>Criminal</h3>
-            <p style="font-size:.85rem;color:var(--muted);margin-top:.2rem;">
-              Crimes contra a pessoa e patrimônio. Júri popular nos crimes dolosos contra a vida,
-              análise de laudos, testemunhas e padrão “além de dúvida razoável”.
-            </p>
-            <button class="btn btn-soft" style="margin-top:.6rem;" onclick="chooseCourt('criminal')">
-              Atuar na vara criminal
-            </button>
-          </div>
-          <div class="card">
-            <h3>Família / Cível</h3>
-            <p style="font-size:.85rem;color:var(--muted);margin-top:.2rem;">
-              Guarda, alimentos, visitas, divórcio, medidas protetivas e interesses de crianças
-              e adolescentes, sob o critério do melhor interesse.
-            </p>
-            <button class="btn btn-soft" style="margin-top:.6rem;" onclick="chooseCourt('familia')">
-              Atuar na vara de família
-            </button>
-          </div>
-          <div class="card">
-            <h3>Trabalhista</h3>
-            <p style="font-size:.85rem;color:var(--muted);margin-top:.2rem;">
-              Vínculo de emprego, verbas rescisórias, horas extras, assédio moral,
-              responsabilidade do empregador e preponderância probatória.
-            </p>
-            <button class="btn btn-soft" style="margin-top:.6rem;" onclick="chooseCourt('trabalhista')">
-              Atuar na vara trabalhista
-            </button>
-          </div>
-        </div>
-        <div style="margin-top:1.1rem;text-align:right;">
-          <button class="btn btn-soft" onclick="goTo('mode')">Voltar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      // Criminal
+      addLote("criminal","Furto simples em comércio",
+        "Subtração de bem em comércio sem violência ou grave ameaça, captado por câmeras de segurança.",
+        {culpado:true},"fácil"
+      );
+      addLote("criminal","Roubo em via pública",
+        "Apropriação de bens com grave ameaça ou violência, em via pública, com reconhecimento da vítima.",
+        {culpado:true},"médio"
+      );
+      addLote("criminal","Lesão corporal em contexto doméstico",
+        "Conflito familiar com alegação de agressões físicas, versão divergente entre as partes, medida protetiva prévia.",
+        {culpado:true},"médio"
+      );
+      addLote("criminal","Homicídio em briga de bar",
+        "Discussão em estabelecimento que evolui para agressão grave com resultado morte, alegação de legítima defesa.",
+        {culpado:true},"difícil"
+      );
 
-<!-- ========== TELA 6 – ESCRITÓRIO / DASHBOARD ========== -->
-<section id="screen-office" class="screen bg-office">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <div id="office-user" style="font-weight:600;"></div>
-            <span id="office-court" style="display:block;margin-top:.15rem;"></span>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:.78rem;color:var(--muted);">IAJ (Índice de Aderência Jurídica)</div>
-            <div id="office-iaj" style="font-size:1rem;font-weight:600;">0%</div>
-          </div>
-        </div>
+      // Família
+      addLote("familia","Revisão de alimentos",
+        "Pedido de alteração do valor de pensão alimentícia por mudança de renda, com alegação de desemprego e renda informal.",
+        {culpado:false},"médio"
+      );
+      addLote("familia","Guarda compartilhada",
+        "Definição de residência principal de menor e regime de convivência, ambos os genitores aptos segundo relatório psicossocial.",
+        {culpado:false},"médio"
+      );
+      addLote("familia","Alienação parental",
+        "Alegações de interferência na formação psicológica da criança, mensagens conflitantes e relatos de profissionais.",
+        {culpado:true},"difícil"
+      );
+      addLote("familia","Medida protetiva",
+        "Pedido de proteção diante de relatos de violência psicológica e ameaças, com histórico de boletins de ocorrência.",
+        {culpado:true},"difícil"
+      );
 
-        <div class="grid grid-2">
-          <!-- fila de processos -->
-          <div class="card">
-            <h3 style="font-size:.95rem;">Fila de processos</h3>
-            <div id="office-queue" class="scroll-y" style="margin-top:.6rem;"></div>
-          </div>
+      // Trabalhista
+      addLote("trabalhista","Horas extras habituais",
+        "Discussão sobre jornada além do contrato e correto pagamento de horas extras, cartões de ponto com inconsistências.",
+        {culpado:false},"médio"
+      );
+      addLote("trabalhista","Vínculo de emprego x PJ",
+        "Reconhecimento ou não de vínculo empregatício em contrato PJ, com subordinação e exclusividade.",
+        {culpado:true},"difícil"
+      );
+      addLote("trabalhista","Adicional de insalubridade",
+        "Trabalho em ambiente potencialmente insalubre, perícia aponta exposição intermitente a agentes nocivos.",
+        {culpado:true},"médio"
+      );
+      addLote("trabalhista","Assédio moral no trabalho",
+        "Relatos de humilhações públicas, xingamentos e cobranças excessivas em grupo de mensagens corporativas.",
+        {culpado:true},"difícil"
+      );
 
-          <!-- métricas, carreira, salvar -->
-          <div class="card">
-            <h3 style="font-size:.95rem;">Métricas & carreira</h3>
-            <div id="office-metrics" style="margin-top:.4rem;font-size:.85rem;color:var(--muted);"></div>
+      return casos;
+    }
 
-            <div style="margin-top:.5rem;">
-              <div style="font-size:.78rem;color:var(--muted);margin-bottom:.25rem;">Reputação pública</div>
-              <div class="bar-wrap"><div id="bar-pub" class="bar-fill" style="width:0;background:#38bdf8;"></div></div>
+    // ------------ IA SIMULADA (usa provas e pergunta) ------------
+    async function iaFala(agente, caso, pergunta=""){
+      const resumo = caso.resumo;
+      const provasTexto = caso.provas
+        .map(p => `[${p.id}] ${p.tipo}: ${p.conteudo}`)
+        .join(" ");
 
-              <div style="font-size:.78rem;color:var(--muted);margin-top:.4rem;margin-bottom:.25rem;">Reputação técnica</div>
-              <div class="bar-wrap"><div id="bar-tec" class="bar-fill" style="width:0;background:#22c55e;"></div></div>
+      const prefixo =
+        agente==="acusacao" ? "ACUSAÇÃO: " :
+        agente==="defesa" ? "DEFESA: " :
+        "RESPOSTA: ";
 
-              <div style="font-size:.78rem;color:var(--muted);margin-top:.4rem;margin-bottom:.25rem;">Reputação institucional</div>
-              <div class="bar-wrap"><div id="bar-inst" class="bar-fill" style="width:0;background:#eab308;"></div></div>
-            </div>
+      const foco = pergunta
+        ? "Respondendo diretamente à pergunta do Juiz: \""+pergunta+"\". "
+        : "Organizando os principais elementos constantes dos autos. ";
 
-            <div style="margin-top:.9rem;display:flex;flex-wrap:wrap;gap:.5rem;">
-              <button class="btn btn-soft" onclick="manualSave()">Salvar agora</button>
-              <button class="btn btn-soft" onclick="exportCurrentSave()">Exportar Save</button>
-              <label class="btn btn-soft" style="cursor:pointer;">
-                Importar Save
-                <input id="office-import" type="file" accept=".juizsave" style="display:none;" />
-              </label>
-            </div>
+      let abordagem = "";
 
-            <hr style="border:none;border-top:1px solid rgba(148,163,184,.25);margin:.9rem 0;" />
+      if(agente==="acusacao"){
+        abordagem =
+          "A acusação destaca os elementos que reforçam a responsabilização do acusado, " +
+          "considerando o padrão probatório aplicável ao tipo de causa. ";
+      }else if(agente==="defesa"){
+        abordagem =
+          "A defesa enfatiza as lacunas, contradições e a necessidade de preservar o princípio da dúvida razoável, " +
+          "bem como os direitos e garantias fundamentais do acusado. ";
+      }else{
+        abordagem =
+          "A resposta busca esclarecer os pontos fáticos relevantes, sem substituir a convicção do Juiz, " +
+          "mas oferecendo um panorama coerente das provas produzidas. ";
+      }
 
-            <h3 style="font-size:.95rem;">Carreira</h3>
-            <p id="office-career" style="margin-top:.3rem;font-size:.83rem;color:var(--muted);"></p>
-            <button id="btn-stj" class="btn btn-main" style="margin-top:.7rem;display:none;" onclick="openStjExam()">
-              Candidatar-se ao STJ (exame rápido)
-            </button>
+      const usoProvas =
+        "Provas relevantes: " + provasTexto +
+        " A partir desses elementos, é possível construir uma linha argumentativa consistente, " +
+        "observando a coerência entre depoimentos, documentos e laudos.";
 
-            <button class="btn btn-soft" style="margin-top:.7rem;" onclick="openReport()">
-              Relatório semestral
-            </button>
+      const texto = prefixo + foco + abordagem + "Resumo do caso: " + resumo + " " + usoProvas;
 
-            <button class="btn btn-soft" style="margin-top:.7rem;" onclick="goTo('mode')">
-              Trocar modo / tribunal
-            </button>
-          </div>
-        </div>
+      await new Promise(r=>setTimeout(r,300));
+      return texto;
+    }
 
-        <div id="office-selected" class="card" style="margin-top:1rem;display:none;"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== TELA 7 – JULGAMENTO ========== -->
-<section id="screen-trial" class="screen bg-court">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <h2>Sala de Julgamento</h2>
-            <span id="trial-case-title"></span>
-          </div>
-          <div style="display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
-            <span id="trial-user-label" style="font-size:.8rem;color:var(--muted);"></span>
-            <span id="trial-mode-pill" class="mode-pill"></span>
-          </div>
-        </div>
-
-        <div class="grid grid-2">
-          <!-- lado esquerdo: falas e perguntas -->
-          <div class="card">
-            <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem;">
-              <button class="btn btn-soft" onclick="speakAccusation()">Palavra à Acusação (A)</button>
-              <button class="btn btn-soft" onclick="speakDefense()">Ouvir Defesa (D)</button>
-              <button class="btn btn-main" onclick="finishTrial(true)">Condenar (C)</button>
-              <button class="btn btn-soft" onclick="finishTrial(false)">Absolver (B)</button>
-              <button class="btn btn-soft" onclick="backToOffice()">Voltar</button>
-            </div>
-
-            <div id="trial-speeches" class="scroll-y" style="max-height:260px;"></div>
-
-            <div class="card" style="margin-top:.6rem;">
-              <div style="font-size:.8rem;color:var(--muted);margin-bottom:.25rem;">
-                Pergunta do juiz… (Enter) — A: acusação, D: defesa (atalhos para as falas iniciais).
-              </div>
-              <div style="display:flex;gap:.4rem;align-items:center;">
-                <input id="trial-question" placeholder="Ex.: detalhar o laudo, contradições, dinâmica dos fatos, dolo, culpa, nulidade..." />
-                <button class="btn btn-soft" onclick="askQuestion()">Perguntar</button>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:.6rem;">
-              <h3 style="font-size:.9rem;margin-bottom:.25rem;">Júri Popular (12)</h3>
-              <div class="jury-grid" id="jury-grid"></div>
-              <button id="btn-deliberar" class="btn btn-soft" style="margin-top:.5rem;" onclick="deliberateJury()">
-                Iniciar Deliberação
+    // ------------ TELAS ------------
+    function SplashScreen({onStart}){
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-black">
+          <div className="relative w-full max-w-md h-[520px] rounded-3xl overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-[url('capa.jpg')] bg-cover bg-center" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+            <div className="relative z-10 h-full flex flex-col items-center justify-end pb-10 px-6">
+              <h1 className="text-3xl font-bold mb-1 drop-shadow-lg text-center">Jogo do Juiz</h1>
+              <p className="text-sm opacity-90 mb-4 text-center">Vale Produção • Simulador Educacional</p>
+              <button
+                onClick={onStart}
+                className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold shadow-xl"
+              >
+                Iniciar
               </button>
             </div>
           </div>
+        </div>
+      );
+    }
 
-          <!-- lado direito: dossiê -->
-          <div class="card">
-            <h3 style="font-size:.9rem;">Dossiê (Provas)</h3>
-            <div id="trial-dossier" class="scroll-y" style="margin-top:.5rem;"></div>
+    function TutorialSalvamento({onContinuar}){
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white">
+          <div className="max-w-xl w-full mx-4 p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur">
+            <h2 className="text-2xl font-bold mb-3">Como o jogo salva seu progresso</h2>
+            <ol className="list-decimal pl-5 space-y-2 text-sm">
+              <li>O jogo grava automaticamente sua carreira no próprio navegador (localStorage).</li>
+              <li>Você pode exportar um arquivo de backup (.json) pela tela de login.</li>
+              <li>Depois, pode importar esse arquivo em outro dispositivo e continuar de onde parou.</li>
+            </ol>
+            <p className="mt-4 text-xs opacity-80">
+              Dica: use um nome de usuário fixo (ex.: <b>DraMaria</b>) para manter sua carreira organizada.
+            </p>
+            <button
+              onClick={onContinuar}
+              className="mt-5 px-5 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold"
+            >
+              Entendi, ir para o login
+            </button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      );
+    }
 
-<!-- ========== TELA 8 – EXAME STJ ========== -->
-<section id="screen-stj" class="screen bg-stj">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <div>
-            <h2>Exame de promoção ao STJ</h2>
-            <span style="font-size:.85rem;color:var(--muted);">
-              Responda às questões objetivas. É uma simulação simplificada do processo de promoção.
-            </span>
-          </div>
-          <span id="stj-user-label" style="font-size:.8rem;color:var(--muted);"></span>
-        </div>
-        <div id="stj-questions" class="card"></div>
-        <div style="margin-top:1rem;display:flex;justify-content:space-between;">
-          <button class="btn btn-soft" onclick="cancelStjExam()">Cancelar</button>
-          <button class="btn btn-main" onclick="submitStjExam()">Enviar respostas</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    function LoginScreen({profiles,setProfiles,setCurrentProfile,onEnter}){
+      const [user,setUser] = useState("");
+      const [file,setFile] = useState(null);
 
-<!-- ========== TELA 9 – RELATÓRIO SEMESTRAL (SIMPLIFICADO) ========== -->
-<section id="screen-report" class="screen">
-  <div class="overlay">
-    <div class="container">
-      <div class="glass">
-        <div class="topbar">
-          <h2>Relatório semestral de desempenho</h2>
-          <span id="report-user-label" style="font-size:.8rem;color:var(--muted);"></span>
-        </div>
-        <div id="report-content" class="card"></div>
-        <div style="margin-top:1rem;text-align:right;">
-          <button class="btn btn-soft" onclick="goTo('office')">Voltar ao Escritório</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-/* ============ ESTADO GLOBAL ============ */
-let currentScreen = "splash";
-let currentProfile = null;
-let profiles = {};
-let currentMode = "carreira";
-let currentCourt = null;
-let currentCases = [];
-let currentCase = null;
-let juryState = [];
-let stjQuestions = [];
-let trialRoles = null; // personalidades de acusação/defesa neste caso
-let startAction = "new";
-const STORAGE_KEY = "juizsimulator_v42_profiles";
-
-/* PERSONALIDADES SIMPLES PARA ACUSAÇÃO/DEFESA */
-const PROMOTOR_PROFILES = ["técnico","rigoroso","conciliador"];
-const DEFESA_PROFILES   = ["garantista","emocional","pragmática"];
-
-/* ============ MENU INICIAL (B) ============ */
-function startFromMenu(action){
-  startAction = action;
-  if(action === "continue"){
-    goTo("login");
-  }else{
-    goTo("tutorial");
-  }
-}
-
-/* ============ UTIL ============ */
-function goTo(screen){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  const el = document.getElementById("screen-"+screen);
-  if(el) el.classList.add("active");
-  currentScreen = screen;
-  if(screen==="login") renderProfileList();
-  if(screen==="mode") updateModeScreen();
-  if(screen==="court") updateCourtScreen();
-  if(screen==="office") renderOffice();
-}
-function loadProfiles(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) profiles = JSON.parse(raw);
-  }catch(e){profiles={};}
-}
-function saveProfiles(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(profiles));
-}
-loadProfiles();
-
-/* ============ STATS DEFAULT / MERGE ============ */
-function defaultStats(){
-  return {
-    julgados:0,
-    acertos:0,
-    prestigio:0,
-    semestre:1,
-    cargo:"Juiz Substituto",
-    reputacaoPublica:50,
-    reputacaoTecnica:50,
-    reputacaoInstitucional:50,
-    stjAtivo:false
-  };
-}
-function getStats(){
-  if(!currentProfile) return defaultStats();
-  const p=profiles[currentProfile];
-  if(!p.stats) p.stats=defaultStats();
-  else p.stats = {...defaultStats(), ...p.stats};
-  return p.stats;
-}
-function setStats(stats){
-  if(!currentProfile) return;
-  profiles[currentProfile].stats = {...defaultStats(), ...stats};
-  saveProfiles();
-}
-
-/* ============ LOGIN ============ */
-function renderProfileList(){
-  const wrap = document.getElementById("profile-list");
-  wrap.innerHTML = "";
-  Object.keys(profiles).forEach(name=>{
-    const b = document.createElement("button");
-    b.className="btn btn-soft";
-    b.textContent=name;
-    b.onclick=()=>{
-      document.getElementById("login-name").value=name;
-      document.getElementById("login-pass").value="";
-    };
-    wrap.appendChild(b);
-  });
-}
-document.getElementById("import-file").addEventListener("change", e=>{
-  const f=e.target.files[0];
-  if(!f) return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    try{
-      const data=JSON.parse(ev.target.result);
-      if(data && data.profiles){
-        profiles=data.profiles;
-        saveProfiles();
-        alert("Saves importados com sucesso.");
-        renderProfileList();
+      function handleEnter(){
+        if(!user.trim()) return;
+        if(!profiles[user]){
+          const novo = {
+            nome:user.trim(),
+            court:null,
+            estado:"SP",
+            cidade:"São Paulo",
+            stats:{julgados:0,acertos:0,prestigio:0}
+          };
+          const updated = {...profiles,[user]:novo};
+          setProfiles(updated);
+          localStorage.setItem("juiz_profiles",JSON.stringify(updated));
+        }
+        setCurrentProfile(user.trim());
+        onEnter();
       }
-    }catch(err){alert("Arquivo inválido.");}
-  };
-  rd.readAsText(f);
-});
-function exportAllSaves(){
-  const blob=new Blob([JSON.stringify({profiles},null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="tribunal_saves.juizsave";
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function enterProfile(){
-  const name=document.getElementById("login-name").value.trim();
-  const pass=document.getElementById("login-pass").value;
-  if(!name){alert("Informe um nome de usuário.");return;}
-  if(!profiles[name]){
-    profiles[name]={password:pass||null, stats:defaultStats(), saves:{}};
-  }else if(profiles[name].password && profiles[name].password!==pass){
-    alert("Senha incorreta para este perfil.");return;
-  }
-  currentProfile=name;
-  saveProfiles();
 
-  const prof=profiles[name];
-  const hasSave = prof.saves && prof.saves.main;
+      function handleExport(){
+        const blob = new Blob([JSON.stringify(profiles,null,2)],{type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "jogo-do-juiz-save.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
 
-  if(startAction==="continue" && hasSave){
-    restoreFromSave(prof.saves.main);
-    goTo("office");
-  }else{
-    if(startAction==="study") currentMode="estudo";
-    if(startAction==="career") currentMode="carreira";
-    goTo("mode");
-  }
-}
-function removeProfile(){
-  const name=document.getElementById("login-name").value.trim();
-  if(!name || !profiles[name]){alert("Selecione um perfil existente.");return;}
-  if(confirm("Remover perfil "+name+"? Isso apagará todos os dados deste usuário.")){
-    delete profiles[name];
-    saveProfiles();
-    currentProfile=null;
-    renderProfileList();
-    alert("Perfil removido.");
-  }
-}
+      function handleImport(){
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e=>{
+          try{
+            const data = JSON.parse(e.target.result);
+            setProfiles(data);
+            localStorage.setItem("juiz_profiles",JSON.stringify(data));
+            alert("Save importado com sucesso!");
+          }catch(err){
+            alert("Arquivo inválido.");
+          }
+        };
+        reader.readAsText(file);
+      }
 
-/* ============ MODO / TRIBUNAL ============ */
-function updateModeScreen(){
-  document.getElementById("mode-user-label").textContent="Usuário: "+(currentProfile||"—");
-}
-function setMode(mode){
-  currentMode=mode;
-  goTo("court");
-}
-function updateCourtScreen(){
-  document.getElementById("court-user-label").textContent=
-    "Usuário: "+(currentProfile||"—")+" • Modo atual: "+(currentMode==="carreira"?"Carreira":"Estudo");
-  document.getElementById("mode-pill").textContent=currentMode==="carreira"?"Modo carreira":"Modo estudo";
-}
-function chooseCourt(court){
-  currentCourt=court;
-  prepareCases();
-  goTo("office");
-}
+      return (
+        <div className="min-h-screen bg-[url('capa.jpg')] bg-cover bg-center flex items-center justify-center">
+          <div className="bg-black/75 text-white max-w-lg w-full mx-4 p-6 rounded-3xl border border-white/10 backdrop-blur">
+            <h1 className="text-xl font-semibold mb-1 text-center">Vale Produção apresenta</h1>
+            <h2 className="text-3xl font-bold text-center mb-4">Jogo do Juiz</h2>
+            <p className="text-xs text-center mb-4 opacity-80">
+              Crie seu usuário ou escolha um já existente. Exporte/importe seu progresso quando quiser.
+            </p>
 
-/* ============ GERAÇÃO DE CASOS ============ */
-function randomPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function prepareCases(){
-  const baseCount=100;
-  const cases=[];
-  const crimes=["homicídio simples","homicídio qualificado","roubo armado","furto qualificado","lesão corporal","violência doméstica","tráfico de drogas","receptação","ameaça","estelionato"];
-  const cenarios=["em bar","em residência","em via pública","em condomínio","em festa","em estádio de futebol","em transporte público","em estacionamento","em escola","em agência bancária"];
-  const fam=["guarda compartilhada","revisão de alimentos","regulamentação de visitas","divórcio litigioso","alienação parental","adoção","pensão avoenga","união estável","medida protetiva","partilha de bens"];
-  const trab=["horas extras","vínculo de emprego x PJ","assédio moral","adicional de insalubridade","acúmulo de função","equiparação salarial","dano moral por acidente","justa causa discutida","intervalo intrajornada","desvio de função"];
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs opacity-80">Usuário</label>
+                <input
+                  className="w-full mt-1 px-3 py-2 rounded-xl bg-white/10 outline-none text-sm"
+                  value={user}
+                  onChange={e=>setUser(e.target.value)}
+                  placeholder="Ex.: DraMaria, EstudanteJoão..."
+                />
+              </div>
 
-  for(let i=0;i<baseCount;i++){
-    if(currentCourt==="criminal"){
-      const crime=randomPick(crimes);
-      const cenario=randomPick(cenarios);
-      const titulo=crime.charAt(0).toUpperCase()+crime.slice(1)+" "+cenario;
-      const provas=[
-        {id:"E1",tipo:"boletim de ocorrência",conteudo:"Registro detalhado dos fatos em "+cenario+" envolvendo possível "+crime+"."},
-        {id:"E2",tipo:"laudo pericial",conteudo:"Perícia descrevendo dinâmica e compatibilidade das lesões/objetos com a versão apresentada."},
-        {id:"E3",tipo:"depoimento de testemunha",conteudo:"Testemunha relata ter visto parte dos acontecimentos, com pontos convergentes e divergentes."},
-        {id:"E4",tipo:"imagens de câmera",conteudo:"Gravação parcial do local, sem áudio, mostrando movimentação antes e depois do fato."},
-        {id:"E5",tipo:"antecedentes / certidões",conteudo:"Certidões criminais e outros documentos do réu."}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleEnter}
+                  className="flex-1 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold"
+                >
+                  Entrar / Criar perfil
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs"
+                >
+                  Exportar save
+                </button>
+              </div>
+
+              <div className="mt-2 text-xs">
+                <div className="mb-1">Importar save:</div>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={e=>setFile(e.target.files[0]||null)}
+                  className="text-xs"
+                />
+                <button
+                  onClick={handleImport}
+                  className="ml-2 px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-600 text-xs"
+                >
+                  Importar
+                </button>
+              </div>
+            </div>
+
+            {Object.keys(profiles).length>0 && (
+              <div className="mt-4">
+                <div className="text-xs mb-1 opacity-70">Perfis:</div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(profiles).map(p=>(
+                    <button
+                      key={p}
+                      onClick={()=>setUser(p)}
+                      className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function CourtSelectScreen({onSelectCourt}){
+      const courts = [
+        {id:"criminal",icon:"⚖️",nome:"Criminal",desc:"Crimes contra a pessoa e o patrimônio."},
+        {id:"familia",icon:"👨‍👩‍👧",nome:"Família",desc:"Guarda, pensão, divórcio e medidas protetivas."},
+        {id:"trabalhista",icon:"💼",nome:"Trabalhista",desc:"Vínculo, verbas, jornada e danos morais."}
       ];
-      cases.push({id:"C"+(i+1),tipo:"criminal",titulo,resumo:"Discussão sobre "+crime+" ocorrido "+cenario+". Réu apresenta versão alternativa dos fatos.",provas,gabarito:{culpado:Math.random()<0.65,padrao:"alem_duvida"},status:"fila"});
-    }else if(currentCourt==="familia"){
-      const tema=randomPick(fam);
-      const titulo=tema.charAt(0).toUpperCase()+tema.slice(1);
-      const provas=[
-        {id:"E1",tipo:"relatório psicossocial",conteudo:"Equipe técnica avalia vínculos afetivos, rotina e contexto familiar."},
-        {id:"E2",tipo:"documentos de renda e despesas",conteudo:"Comprovantes de renda, gastos com moradia, escola, saúde e transporte."},
-        {id:"E3",tipo:"mensagens e e-mails",conteudo:"Trocas de mensagens que revelam conflitos de comunicação e tentativas de acordo."},
-      ];
-      cases.push({id:"F"+(i+1),tipo:"familia",titulo,resumo:"Conflito de família envolvendo "+tema+". Avaliação do melhor interesse da criança ou das partes vulneráveis.",provas,gabarito:{culpado:false,padrao:"preponderancia"},status:"fila"});
-    }else if(currentCourt==="trabalhista"){
-      const tema=randomPick(trab);
-      const titulo="Ação trabalhista sobre "+tema;
-      const provas=[
-        {id:"E1",tipo:"contrato / CTPS / recibos",conteudo:"Documentos formais de contratação, recibos de pagamento e anotações em carteira."},
-        {id:"E2",tipo:"registros de ponto / escala",conteudo:"Espelhos de ponto, controles de jornada e escalas de trabalho."},
-        {id:"E3",tipo:"depoimento de colega",conteudo:"Testemunha descreve rotina, ordens recebidas e condições de trabalho."},
-      ];
-      cases.push({id:"T"+(i+1),tipo:"trabalhista",titulo,resumo:"Discussão trabalhista envolvendo "+tema+".",provas,gabarito:{culpado:false,padrao:"preponderancia"},status:"fila"});
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center text-white">
+          <div className="max-w-4xl w-full mx-4 p-6">
+            <h2 className="text-3xl font-bold mb-6 text-center">Escolha o Tribunal</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {courts.map(c=>(
+                <button
+                  key={c.id}
+                  onClick={()=>onSelectCourt(c.id)}
+                  className="p-5 rounded-3xl bg-white/10 border border-white/15 hover:bg-white/20 transition text-left"
+                >
+                  <div className="text-3xl mb-2">{c.icon}</div>
+                  <div className="text-lg font-semibold">{c.nome}</div>
+                  <p className="text-xs opacity-80 mt-1">{c.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
     }
-  }
-  currentCases=cases;
-}
 
-/* ============ ESCRITÓRIO ============ */
-function computeIAJ(stats){
-  if(!stats.julgados) return 0;
-  return Math.round((stats.acertos/stats.julgados)*100);
-}
-function renderOffice(){
-  const stats=getStats();
-  const iaj=computeIAJ(stats);
-  document.getElementById("office-user").textContent="Usuário: "+currentProfile;
-  const inst = stats.stjAtivo ? "STJ (simulado)" :
-    (currentCourt==="criminal"?"Vara Criminal":currentCourt==="familia"?"Vara Família/Cível":"Vara Trabalhista");
-  document.getElementById("office-court").textContent="Instância: "+inst+
-    " • Modo: "+(currentMode==="carreira"?"Carreira":"Estudo")+
-    " • Cargo: "+stats.cargo;
-  document.getElementById("office-iaj").textContent=iaj+"%";
+    function LocationSelect({profile,onSelectLocation}){
+      const [estado,setEstado] = useState(profile.estado||"SP");
+      const cidades = ESTADOS[estado] || [];
+      const [cidade,setCidade] = useState(profile.cidade||cidades[0]||"");
 
-  const qDiv=document.getElementById("office-queue");
-  qDiv.innerHTML="";
-  currentCases.filter(c=>c.status==="fila").slice(0,40).forEach(c=>{
-    const el=document.createElement("div");
-    el.className="card fade";
-    el.style.marginBottom=".4rem";
-    el.innerHTML=`<div style="font-weight:600;font-size:.9rem;">${c.titulo}</div>
-      <div style="font-size:.8rem;color:var(--muted);margin-top:.15rem;">${c.resumo}</div>
-      <div style="margin-top:.45rem;display:flex;gap:.4rem;flex-wrap:wrap;">
-        <button class="btn btn-soft" onclick="readCase('${c.id}')">Ler</button>
-        <button class="btn btn-main" onclick="startTrial('${c.id}')">Julgar</button>
-      </div>`;
-    qDiv.appendChild(el);
-  });
-  if(!qDiv.innerHTML) qDiv.textContent="Sem casos na fila deste tribunal.";
-
-  const metrics=document.getElementById("office-metrics");
-  metrics.innerHTML=`Casos julgados neste semestre simulado: <strong>${stats.julgados}</strong><br/>
-    Acertos em relação ao gabarito simulado: <strong>${stats.acertos}</strong><br/>
-    IAJ: <strong>${iaj}%</strong><br/>
-    Prestígio geral: <strong>${stats.prestigio}%</strong>`;
-
-  // reputações
-  document.getElementById("bar-pub").style.width=Math.min(100,stats.reputacaoPublica)+"%";
-  document.getElementById("bar-tec").style.width=Math.min(100,stats.reputacaoTecnica)+"%";
-  document.getElementById("bar-inst").style.width=Math.min(100,stats.reputacaoInstitucional)+"%";
-
-  const career=document.getElementById("office-career");
-  let comentario="Início de carreira.";
-  if(stats.cargo==="Juiz Titular") comentario="Já consolidado em primeira instância, com atuação consistente.";
-  if(stats.cargo==="Desembargador") comentario="Atua em grau recursal, com decisões que influenciam toda a região.";
-  if(stats.cargo.includes("STJ")) comentario="Atua em corte superior, uniformizando a interpretação da legislação federal.";
-  career.textContent=`Cargo atual: ${stats.cargo}. ${comentario}`;
-
-  const canStj = currentMode==="carreira" && !stats.stjAtivo && iaj>=70 && stats.julgados>=20;
-  document.getElementById("btn-stj").style.display=canStj?"inline-block":"none";
-
-  const selDiv=document.getElementById("office-selected");
-  selDiv.style.display="none";
-
-  document.getElementById("office-import").onchange=e=>{
-    const f=e.target.files[0];if(!f) return;
-    const rd=new FileReader();
-    rd.onload=ev=>{
-      try{
-        const data=JSON.parse(ev.target.result);
-        if(data && data.profiles && data.profiles[currentProfile]){
-          profiles[currentProfile]=data.profiles[currentProfile];
-          saveProfiles();
-          alert("Save importado para o usuário atual.");
-          renderOffice();
-        }else alert("Arquivo não contém dados deste usuário.");
-      }catch(err){alert("Arquivo inválido.");}
-    };
-    rd.readAsText(f);
-  };
-  autoSave();
-}
-function readCase(id){
-  const c=currentCases.find(x=>x.id===id);
-  if(!c) return;
-  const selDiv=document.getElementById("office-selected");
-  selDiv.style.display="block";
-  const provasList=c.provas.map(p=>`<li>[${p.id}] <strong>${p.tipo}</strong>: ${p.conteudo}</li>`).join("");
-  selDiv.innerHTML=`
-    <h3 style="font-size:.95rem;">Processo selecionado</h3>
-    <div style="font-size:.9rem;font-weight:600;margin-top:.25rem;">${c.titulo}</div>
-    <div style="font-size:.85rem;color:var(--muted);margin-top:.15rem;">${c.resumo}</div>
-    <div style="font-size:.83rem;color:var(--muted);margin-top:.5rem;">Provas:</div>
-    <ul style="font-size:.83rem;margin-left:1rem;margin-top:.2rem;">${provasList}</ul>
-  `;
-}
-function startTrial(id){
-  currentCase=currentCases.find(x=>x.id===id);
-  if(!currentCase){alert("Caso não encontrado.");return;}
-  juryState=Array.from({length:12},(_,i)=>({id:i+1,voto:null,certeza:0}));
-  // gera personalidades para este caso
-  trialRoles={
-    acusacao: randomPick(PROMOTOR_PROFILES),
-    defesa:  randomPick(DEFESA_PROFILES)
-  };
-  renderJury();
-  renderTrial();
-  goTo("trial");
-}
-
-/* ============ JULGAMENTO / FALAS ============ */
-function renderTrial(){
-  document.getElementById("trial-case-title").textContent=currentCase.titulo;
-  const stats=getStats();
-  let instLabel = stats.stjAtivo ? "Corte Superior (STJ simulado)" :
-    (currentCourt==="criminal"?"Vara Criminal":currentCourt==="familia"?"Vara Família/Cível":"Vara Trabalhista");
-  document.getElementById("trial-user-label").textContent="Juiz: "+currentProfile+" • "+instLabel;
-  document.getElementById("trial-mode-pill").textContent=currentMode==="carreira"?"Modo carreira":"Modo estudo";
-
-  const dossier=document.getElementById("trial-dossier");
-  dossier.innerHTML="";
-  currentCase.provas.forEach(p=>{
-    const el=document.createElement("div");
-    el.className="card";
-    el.style.marginBottom=".4rem";
-    el.innerHTML=`<div style="font-size:.8rem;color:var(--muted);">[${p.id}] ${p.tipo}</div>
-      <div style="font-size:.86rem;margin-top:.1rem;">${p.conteudo}</div>`;
-    dossier.appendChild(el);
-  });
-
-  document.getElementById("trial-speeches").innerHTML="";
-  document.getElementById("trial-question").value="";
-  document.getElementById("btn-deliberar").disabled=false;
-}
-function addSpeech(side,text){
-  const wrap=document.getElementById("trial-speeches");
-  const card=document.createElement("div");
-  card.className="speech-bubble fade";
-  const isAcc=side==="acusacao";
-  const avatarClass=isAcc?"avatar avatar-acc":"avatar avatar-def";
-  const sideLabel=isAcc?"Acusação":"Defesa";
-  const role = trialRoles ? trialRoles[side] : null;
-  const roleLabel = role ? (" • perfil: "+role) : "";
-  card.innerHTML=`<div class="speech-header">
-      <div class="${avatarClass}">${isAcc?"AC":"DF"}</div>
-      <div>
-        <div style="font-size:.78rem;color:${isAcc?"#fecaca":"#bbf7d0"};">${sideLabel}${roleLabel}</div>
-        <div style="font-size:.75rem;color:var(--muted);">fala estruturada com base nas provas</div>
-      </div>
-    </div>
-    <div class="speech-text" style="font-size:.86rem;line-height:1.6;white-space:pre-wrap;"></div>`;
-  wrap.appendChild(card);
-  typeWriter(card.querySelector(".speech-text"),text,14);
-  wrap.scrollTop=wrap.scrollHeight;
-}
-function typeWriter(el,text,speed){
-  el.textContent="";
-  let i=0;
-  const id=setInterval(()=>{
-    el.textContent+=text.charAt(i);
-    i++;
-    if(i>=text.length) clearInterval(id);
-  },speed);
-}
-
-/* falas iniciais com personalidade */
-function buildSpeech(side){
-  const provas=currentCase.provas;
-  const ids=provas.map(p=>"["+p.id+"]").join(", ");
-  const role = trialRoles ? trialRoles[side] : null;
-  const tipo=currentCase.tipo;
-
-  if(side==="acusacao"){
-    if(role==="técnico"){
-      return `ACUSAÇÃO – perfil técnico:
-
-Com base nas provas constantes dos autos, especialmente ${ids}, a acusação destaca a coerência interna do conjunto probatório. O laudo pericial, os depoimentos e os documentos apontam para a mesma direção e reforçam a narrativa da denúncia.
-
-No contexto do processo ${tipo==="criminal"?"criminal, exige-se um padrão de 'além de dúvida razoável'":"cível, em que basta a preponderância da prova"}, entende-se que esses elementos são suficientes para a procedência da pretensão acusatória.`;
+      return (
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="bg-white/10 p-6 rounded-3xl max-w-md w-full mx-4 border border-white/10">
+            <h2 className="text-2xl font-bold mb-4">Escolha a comarca</h2>
+            <div className="mb-3">
+              <label className="text-xs opacity-80">Estado</label>
+              <select
+                value={estado}
+                onChange={e=>{
+                  const uf = e.target.value;
+                  setEstado(uf);
+                  const lista = ESTADOS[uf]||[];
+                  setCidade(lista[0]||"");
+                }}
+                className="w-full mt-1 px-3 py-2 bg-white/10 rounded-xl outline-none text-sm"
+              >
+                {Object.keys(ESTADOS).map(uf=>(
+                  <option key={uf} value={uf}>{uf}</option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="text-xs opacity-80">Cidade</label>
+              <select
+                value={cidade}
+                onChange={e=>setCidade(e.target.value)}
+                className="w-full mt-1 px-3 py-2 bg-white/10 rounded-xl outline-none text-sm"
+              >
+                {(ESTADOS[estado]||[]).map(c=>(
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={()=>onSelectLocation(estado,cidade)}
+              className="w-full px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      );
     }
-    if(role==="rigoroso"){
-      return `ACUSAÇÃO – perfil rigoroso:
 
-As provas ${ids} evidenciam um cenário de alta gravidade. A acusação ressalta que, diante da soma de laudo, testemunhos e registros formais, a versão defensiva não passa de tentativa de afastar responsabilidade.
-
-A leitura sistemática dos autos afasta qualquer dúvida razoável e demonstra que a resposta estatal precisa ser firme, sob pena de descredibilizar a função protetiva do Direito.`;
+    function ProvaViewer({prova,onClose}){
+      if(!prova) return null;
+      return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-40">
+          <div className="bg-slate-900 border border-white/15 rounded-3xl max-w-lg w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold mb-2">{prova.id} — {prova.tipo}</h3>
+            <p className="text-sm whitespace-pre-wrap opacity-90 mb-4">{prova.conteudo}</p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-sm font-semibold"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      );
     }
-    if(role==="conciliador"){
-      return `ACUSAÇÃO – perfil conciliador:
 
-Embora as provas principais sejam ${ids}, a acusação reconhece que existem nuances e aspectos humanos relevantes. Ainda assim, o conjunto dos autos indica responsabilidade da parte acusada, dentro dos limites legais.
-
-A atuação ministerial não ignora fatores sociais e familiares, mas lembra que a responsabilização adequada também é instrumento de pacificação e prevenção de novos conflitos.`;
-    }
-    // fallback
-    return `ACUSAÇÃO:
-
-Com base em ${ids}, a acusação sustenta que o conjunto probatório é suficiente para a condenação, atendendo ao padrão exigido para o caso.`;
-  }else{
-    if(role==="garantista"){
-      return `DEFESA – perfil garantista:
-
-A defesa parte do princípio de que nenhuma condenação pode se sustentar sem prova robusta e consistente. Ao analisar ${ids}, percebe-se que há contradições, lacunas e pontos não esclarecidos.
-
-No âmbito ${tipo==="criminal"?"penal, a dúvida razoável impõe a absolvição":"cível, a parte adversa não se desincumbiu plenamente do ônus probatório"}. Assim, a solução mais alinhada às garantias fundamentais é a decisão favorável ao acusado / parte autora.`;
-    }
-    if(role==="emocional"){
-      return `DEFESA – perfil emocional:
-
-Além dos aspectos técnicos, a defesa chama atenção para a dimensão humana deste processo. As provas ${ids}, quando lidas com sensibilidade, revelam um contexto de fragilidade, medo e conflito intenso.
-
-Em meio a tantas versões, não é possível afirmar com segurança que a responsabilidade recaia integralmente sobre o acusado. Diante disso, a defesa pede que a decisão leve em conta não só a letra fria da lei, mas também a realidade concreta vivida pelas pessoas envolvidas.`;
-    }
-    if(role==="pragmática"){
-      return `DEFESA – perfil pragmático:
-
-A defesa se concentra naquilo que pode ser comprovado de forma objetiva. Ao examinar ${ids}, percebe-se que parte das alegações adversas não encontra apoio sólido nas provas produzidas.
-
-Considerando o padrão probatório aplicável, o ônus da prova e a coerência das versões, a solução mais racional é afastar a pretensão acusatória ou, ao menos, mitigá-la substancialmente.`;
-    }
-    return `DEFESA:
-
-Utilizando as provas ${ids}, a defesa enfatiza as contradições, lacunas e dúvidas razoáveis presentes na reconstrução dos fatos, sustentando solução favorável ao acusado / parte autora.`;
-  }
-}
-function speakAccusation(){
-  addSpeech("acusacao",buildSpeech("acusacao"));
-}
-function speakDefense(){
-  addSpeech("defesa",buildSpeech("defesa"));
-}
-
-/* Perguntas livres do juiz com resposta mais inteligente */
-function answerQuestionFor(side,question){
-  question=question.toLowerCase();
-  const p=currentCase.provas;
-  let foco=null;
-  if(question.includes("laudo")||question.includes("perícia")) foco=p.find(x=>x.tipo.includes("laudo"))||p[1];
-  else if(question.includes("testemunh")) foco=p.find(x=>x.tipo.includes("testemunha"))||p[2];
-  else if(question.includes("câmera")||question.includes("imagem")||question.includes("video")) foco=p.find(x=>x.tipo.includes("imagens"))||p[3];
-  else if(question.includes("contradi")||question.includes("versão")) foco=p.find(x=>x.tipo.includes("depoimento"))||p[2];
-  else foco=p[0];
-
-  const tipo=currentCase.tipo;
-  const role = trialRoles ? trialRoles[side] : null;
-
-  if(side==="acusacao"){
-    let base = `ACUSAÇÃO – resposta à pergunta do juízo:\n\n`;
-    base += `A partir de ${foco ? "["+foco.id+"] "+foco.tipo : "todas as provas relevantes"}, a acusação entende que o quadro probatório permanece consistente com a tese acusatória. `;
-    if(question.includes("dolo")||question.includes("intenção")){
-      base += `Os elementos subjetivos (como falas, contexto prévio e modo de agir) indicam que a conduta não foi um mero acidente, mas revela intenção ou, ao menos, assunção consciente do risco. `;
-    }
-    if(question.includes("culpa")||question.includes("neglig")){
-      base += `Ainda que não se fale em dolo direto, a maneira como a situação foi conduzida revela descuido, imprudência ou negligência incompatíveis com a cautela exigida. `;
-    }
-    if(question.includes("contradi")||question.includes("versões")){
-      base += `As variações pontuais de relato são explicáveis pelo tempo e pela emoção do fato, sem comprometer o eixo central da narrativa, que se mantém firme em apontar a responsabilidade do acusado. `;
-    }
-    base += tipo==="criminal"
-      ? `No padrão “além de dúvida razoável”, tais elementos são suficientes para afastar teses meramente especulativas e autorizar a condenação.`
-      : `No campo não penal, a leitura conjunta das provas reforça a procedência da pretensão formulada pela parte autora/MP.`;
-    return base;
-  }else{
-    let base = `DEFESA – resposta à pergunta do juízo:\n\n`;
-    base += `Analisando com atenção ${foco ? "["+foco.id+"] "+foco.tipo : "os elementos trazidos aos autos"}, a defesa destaca que ainda subsistem pontos obscuros e aspectos não totalmente esclarecidos. `;
-    if(question.includes("dolo")||question.includes("intenção")){
-      base += `Não há elementos firmes o bastante para afirmar, com segurança, que o acusado agiu com intenção manifesta de produzir o resultado narrado. `;
-    }
-    if(question.includes("culpa")||question.includes("neglig")){
-      base += `Mesmo sob a ótica da culpa, é necessário cautela: o contexto pode indicar um conjunto de circunstâncias atípicas, em que a previsibilidade do resultado não é tão evidente quanto sugere a acusação. `;
-    }
-    if(question.includes("contradi")||question.includes("versões")){
-      base += `As divergências entre depoimentos mostram que a reconstrução dos fatos não é linear. Essas contradições, em vez de serem minimizadas, devem pesar em favor da parte acusada/autor, pois enfraquecem a segurança exigida para uma conclusão condenatória. `;
-    }
-    base += tipo==="criminal"
-      ? `Diante disso, a defesa insiste que a dúvida razoável persiste, o que impõe solução absolutória, em respeito ao princípio in dubio pro reo.`
-      : `No âmbito não penal, a versão apresentada pela parte defendida se mostra, ao menos, tão plausível quanto a adversa, o que afasta a preponderância necessária para acolher integralmente a pretensão contrária.`;
-    if(role==="emocional"){
-      base += `\n\nAlém disso, a defesa chama atenção para o impacto humano de uma condenação precipitada, lembrando que o processo envolve pessoas reais, com histórias e fragilidades, que não podem ser reduzidas a meros números estatísticos.`;
-    }
-    return base;
-  }
-}
-function askQuestion(){
-  const q=document.getElementById("trial-question").value.trim();
-  if(!q) return;
-  const target=Math.random()<0.5?"acusacao":"defesa";
-  const resp=answerQuestionFor(target,q);
-  addSpeech(target,resp);
-  document.getElementById("trial-question").value="";
-}
-
-/* Júri */
-function renderJury(){
-  const grid=document.getElementById("jury-grid");
-  grid.innerHTML="";
-  juryState.forEach(j=>{
-    const el=document.createElement("div");
-    let cls="jury-cell";
-    let label="J"+j.id.toString().padStart(2,"0");
-    let extra="";
-    if(j.voto===true){cls+=" jury-guilty";extra="Culpado 😐";}
-    else if(j.voto===false){cls+=" jury-not";extra="Absolver 🙂";}
-    el.className=cls;
-    el.innerHTML=`${label}<span>${extra}</span>`;
-    grid.appendChild(el);
-  });
-}
-function deliberateJury(){
-  juryState=juryState.map(j=>{
-    const certeza=Math.round(50+Math.random()*45);
-    const voto=Math.random()<0.56;
-    return {...j,certeza,voto};
-  });
-  renderJury();
-  document.getElementById("btn-deliberar").disabled=true;
-}
-
-/* Finalização do julgamento */
-function registrarVeredito(decisaoCulpado){
-  const stats=getStats();
-  stats.julgados++;
-  if(currentCase.tipo==="criminal"){
-    const correto = (decisaoCulpado===!!currentCase.gabarito.culpado);
-    if(correto){
-      stats.acertos++;
-      stats.reputacaoTecnica = Math.min(100,stats.reputacaoTecnica+2);
-      stats.reputacaoInstitucional = Math.min(100,stats.reputacaoInstitucional+1.5);
-    }else{
-      stats.reputacaoTecnica = Math.max(0,stats.reputacaoTecnica-1);
-    }
-  }else{
-    stats.acertos+=1;
-    stats.reputacaoTecnica = Math.min(100,stats.reputacaoTecnica+0.5);
-  }
-  // reputação pública varia levemente, simulando reação da sociedade
-  stats.reputacaoPublica = Math.min(100,Math.max(0,stats.reputacaoPublica + (Math.random()*4-2)));
-  stats.prestigio=Math.min(100,Math.round(computeIAJ(stats)*0.7+stats.julgados*0.6));
-  setStats(stats);
-}
-function finishTrial(declararCulpado){
-  if(!currentCase) return;
-  registrarVeredito(declararCulpado);
-  currentCase.status="julgado";
-  alert("Veredito registrado. O sistema salvou automaticamente seu progresso.");
-  autoSave();
-  goTo("office");
-}
-function backToOffice(){
-  if(confirm("Deseja sair da sala de julgamento sem registrar decisão?")){
-    goTo("office");
-  }
-}
-
-/* ============ SALVAMENTO / EXPORT ============ */
-function getCurrentSave(){
-  if(!currentProfile) return null;
-  return {
-    mode:currentMode,
-    court:currentCourt,
-    cases:currentCases,
-    stats:getStats()
-  };
-}
-function restoreFromSave(save){
-  if(!save) return;
-  currentMode=save.mode||"carreira";
-  currentCourt=save.court||"criminal";
-  currentCases=save.cases||[];
-  setStats(save.stats||defaultStats());
-}
-function autoSave(){
-  if(!currentProfile) return;
-  const s=getCurrentSave();
-  profiles[currentProfile].saves.main=s;
-  saveProfiles();
-}
-function manualSave(){
-  autoSave();
-  alert("Jogo salvo.");
-}
-function exportCurrentSave(){
-  if(!currentProfile){alert("Nenhum perfil ativo.");return;}
-  const blob=new Blob([JSON.stringify({profiles:{[currentProfile]:profiles[currentProfile]}},null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=currentProfile+"_tribunal.juizsave";
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-
-/* ============ STJ ============ */
-function openStjExam(){
-  stjQuestions=[
-    {
-      q:"No padrão 'além de dúvida razoável', aplicado aos crimes dolosos contra a vida, qual é a ideia central?",
-      a:[
-        "Basta qualquer suspeita para condenar.",
-        "É necessário um grau de certeza elevado, afastando dúvidas razoáveis.",
-        "A dúvida sempre leva à condenação.",
-        "O juiz decide apenas por intuição."
-      ],
-      correct:1
-    },
-    {
-      q:"Na atuação de um Ministro do STJ, qual é o foco principal?",
-      a:[
-        "Reexaminar provas em todos os detalhes.",
-        "Uniformizar a interpretação da legislação federal.",
-        "Julgar apenas casos criminais de júri.",
-        "Atuar como juiz eleitoral em primeira instância."
-      ],
-      correct:1
-    },
-    {
-      q:"Em colegiado, as decisões normalmente são tomadas:",
-      a:[
-        "Por votação entre os Ministros, com proclamação do resultado.",
-        "Somente pela vontade do Presidente.",
-        "Apenas por sorteio.",
-        "Sem registro em acórdão."
-      ],
-      correct:0
-    }
-  ];
-  const box=document.getElementById("stj-questions");
-  box.innerHTML="";
-  stjQuestions.forEach((q,i)=>{
-    const div=document.createElement("div");
-    div.className="card";
-    div.style.marginBottom=".6rem";
-    const opts=q.a.map((alt,idx)=>`
-      <label style="display:block;font-size:.85rem;margin-top:.3rem;">
-        <input type="radio" name="stj-${i}" value="${idx}" style="margin-right:.35rem;" />
-        ${String.fromCharCode(65+idx)}) ${alt}
-      </label>`).join("");
-    div.innerHTML=`<div style="font-size:.9rem;font-weight:600;">${i+1}. ${q.q}</div>${opts}`;
-    box.appendChild(div);
-  });
-  document.getElementById("stj-user-label").textContent="Candidato: "+currentProfile;
-  goTo("stj");
-}
-function cancelStjExam(){
-  if(confirm("Deseja cancelar o exame agora?")) goTo("office");
-}
-function submitStjExam(){
-  let score=0;
-  stjQuestions.forEach((q,i)=>{
-    const checked=document.querySelector(`input[name="stj-${i}"]:checked`);
-    if(checked && Number(checked.value)===q.correct) score++;
-  });
-  const stats=getStats();
-  if(score>=2){
-    alert("Parabéns! Você foi aprovado no exame simulado do STJ. Seu cargo agora é Ministro do STJ (simulado).");
-    stats.cargo="Ministro do STJ (simulado)";
-    stats.stjAtivo=true;
-    stats.reputacaoInstitucional = Math.min(100,stats.reputacaoInstitucional+20);
-    stats.prestigio=Math.min(100,stats.prestigio+15);
-  }else{
-    alert("Pontuação insuficiente para aprovação no exame simulado. Continue estudando e tente novamente.");
-    stats.reputacaoInstitucional = Math.max(0,stats.reputacaoInstitucional-3);
-  }
-  setStats(stats);
-  autoSave();
-  goTo("office");
-}
-
-/* ============ RELATÓRIO (exemplo) ============ */
-function openReport(){
-  const stats=getStats();
-  const iaj=computeIAJ(stats);
-  document.getElementById("report-user-label").textContent="Juiz: "+currentProfile+" • Cargo: "+stats.cargo;
-  const div=document.getElementById("report-content");
-  div.innerHTML=`
-    <p style="font-size:.9rem;color:var(--muted);">
-      Este relatório semestral simulado apresenta um panorama geral do desempenho do magistrado,
-      considerando quantidade de casos julgados, aderência ao gabarito simulado e indicadores de reputação.
-    </p>
-    <ul style="margin-top:.7rem;margin-left:1.1rem;font-size:.88rem;color:var(--muted);line-height:1.6;">
-      <li><strong>Casos julgados:</strong> ${stats.julgados}</li>
-      <li><strong>IAJ (aderência jurídica):</strong> ${iaj}%</li>
-      <li><strong>Prestígio geral:</strong> ${stats.prestigio}%</li>
-      <li><strong>Reputação pública:</strong> ${Math.round(stats.reputacaoPublica)}%</li>
-      <li><strong>Reputação técnica:</strong> ${Math.round(stats.reputacaoTecnica)}%</li>
-      <li><strong>Reputação institucional:</strong> ${Math.round(stats.reputacaoInstitucional)}%</li>
-      <li><strong>Cargo atual:</strong> ${stats.cargo}</li>
-      <li><strong>STJ ativo:</strong> ${stats.stjAtivo?"Sim":"Não"}</li>
-    </ul>
-    <p style="margin-top:.8rem;font-size:.88rem;color:var(--muted);">
-      Professores podem solicitar que os alunos exportem este relatório juntamente com o arquivo de save
-      ao final de cada semestre, para registro qualitativo do progresso.
-    </p>`;
-  goTo("report");
-}
-
-/* ============ INICIALIZAÇÃO ============ */
-document.addEventListener("keydown",e=>{
-  if(currentScreen==="trial"){
-    if(e.key==="a" || e.key==="A") speakAccusation();
-    if(e.key==="d" || e.key==="D") speakDefense();
-    if(e.key==="c" || e.key==="C") finishTrial(true);
-    if(e.key==="b" || e.key==="B") finishTrial(false);
-    if(e.key==="Enter"){
-      e.preventDefault();
-      askQuestion();
-    }
-  }
-});
-</script>
-</body>
-</html>
+    function Escritorio({profile,cases,onSelectCase,onRelatorio,sons}){
+      const fila = cases.filter(c=>c.status==="na_fila");
+      return (
+        <div className="min-h-screen relative bg-[url('escritorio.jpg')] bg-cover bg-center text-white">
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
+          <div className="relative z-10 max-w-6xl mx-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold">Escritório do Juiz</h1>
+                <p className="text-xs opacity-80">
+                  {profile.nome} — {profile.cidade}/{profile.estado} • {profile.court||"sem tribunal"}
+                </p>
+              </div>
+              <div className="text-xs text-right opacity-80">
+                Julgados: {profile.stats?.julgados||0}<br/>
+                Acertos: {profile.stats?.acertos||0}<br/>
+                Prestígio: {profile.
